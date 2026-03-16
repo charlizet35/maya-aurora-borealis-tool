@@ -2,11 +2,7 @@
 A procedural aurora borealis generator for Autodesk Maya
 
 ## Description
-The aurora borealis tool is a procedural system that creates geometry and shaders based on user-defined curves. The curve is first turned into a procedurally generated ribbon, in which a utility-node-based shader is implemented onto the ribbon mesh. Dynamic vertical straks are applied with UV-stretching, and the animation is created through a noise time function.
-
-* **Key Feature 1:** Procedural ribbon generation.
-* **Key Feature 2:** Custom utility-node-based shader (no external textures).
-* **Key Feature 3:** Dynamic vertical streak system with UV-stretching.
+Artists draw a NURBS curve to define the shape and position of the aurora. The tool generates a ribbon mesh along the curve, applies a fully procedural shader network with animated vertical streaks, and outputs a render-ready result with no external textures or plugins required. All parameters — height, color, brightness, and animation speed — are controllable through a custom UI panel.
 
 ---
 
