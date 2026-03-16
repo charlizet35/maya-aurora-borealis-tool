@@ -2,6 +2,7 @@ import sys
 import os
 
 tool_path = r" !! change this to your Aurora Tool folder path !!" 
+#make sure to use forward slash /
 
 user_setup = os.path.join(os.path.expanduser("~"), 
                           "Documents", "maya", "2026", "scripts", "userSetup.py")
