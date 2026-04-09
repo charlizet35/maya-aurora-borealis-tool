@@ -24,5 +24,6 @@ Artists draw a NURBS curve to define the shape and position of the aurora. The t
 3. Adjust samples for more vertices to match the curve and change height to liking. Press Update to see changes
 4. Adjust R, G, B incandescence to increase/decrease illumination for each color channel.
 5. Press play to see animation. Scroll slider to test animation speeds.
-6. Press Save Aurora to save mesh separately. A new curve will be able for generation.
+6. Press Save Aurora to save mesh separately. A new curve will be available for generation.
 7. Press Delete to delete all existing Auora
+8. Press Export to export as USD in file location of choice.
