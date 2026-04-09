@@ -47,7 +47,6 @@ class AuroraWindow(QtWidgets.QDialog):
 
         root.addWidget(_divider())
 
-        # curve picker
         root.addWidget(_section_label("Input Curve"))
 
         pick_row = QtWidgets.QHBoxLayout()
@@ -69,7 +68,6 @@ class AuroraWindow(QtWidgets.QDialog):
 
         root.addLayout(pick_row)
 
-        # status indicator
         self.status_label = QtWidgets.QLabel("No curve loaded")
         self.status_label.setStyleSheet("color: #888; font-size: 11px;")
         root.addWidget(self.status_label)
@@ -91,14 +89,12 @@ class AuroraWindow(QtWidgets.QDialog):
 
         root.addWidget(_divider())
 
-        # shader controls
         root.addWidget(_section_label("Brightness"))
 
         shader_form = QtWidgets.QFormLayout()
         shader_form.setSpacing(6)
 
-        # R slider — starts at 6, range 0-20
-        self.incan_r = _labeled_slider(0, 200, 60)   #stored as int but divide by 10
+        self.incan_r = _labeled_slider(0, 200, 60)  
         self.incan_g = _labeled_slider(0, 200, 60)
         self.incan_b = _labeled_slider(0, 200, 80)
 
@@ -107,7 +103,6 @@ class AuroraWindow(QtWidgets.QDialog):
         shader_form.addRow("B", self.incan_b)
         root.addLayout(shader_form)
 
-        # color swatch — shows current RGB as a preview
         self.color_swatch = QtWidgets.QLabel()
         self.color_swatch.setFixedHeight(16)
         self.color_swatch.setStyleSheet("border-radius: 3px;")
@@ -122,7 +117,6 @@ class AuroraWindow(QtWidgets.QDialog):
         anim_form = QtWidgets.QFormLayout()
         anim_form.setSpacing(6)
 
-        #speed: 0-50 mapped to 0.000-0.050, default 5 = 0.005
         self.speed_slider = _labeled_slider(0, 50, 5)
         self.speed_label  = QtWidgets.QLabel("0.005")
         self.speed_label.setStyleSheet("color: #888; font-size: 11px;")
@@ -161,6 +155,13 @@ class AuroraWindow(QtWidgets.QDialog):
         self.delete_btn.setStyleSheet("color: #c06060;")
         root.addWidget(self.delete_btn)
 
+        root.addWidget(_divider())
+
+        self.export_btn = QtWidgets.QPushButton("Export USD\u2026")
+        self.export_btn.setFixedHeight(28)
+        self.export_btn.setToolTip("Export a saved aurora_mesh_00x as .usd with shaders")
+        root.addWidget(self.export_btn)
+
         root.addStretch()
 
     def _connect_signals(self):
@@ -170,24 +171,26 @@ class AuroraWindow(QtWidgets.QDialog):
         self.update_btn.clicked.connect(self._on_update)
         self.save_btn.clicked.connect(self._on_save)
         self.delete_btn.clicked.connect(self._on_delete)
+        self.export_btn.clicked.connect(self._on_export)
         self.incan_r.valueChanged.connect(self._on_incan_changed)
         self.incan_g.valueChanged.connect(self._on_incan_changed)
         self.incan_b.valueChanged.connect(self._on_incan_changed)
         self.speed_slider.valueChanged.connect(self._on_speed_changed)
 
     def eventFilter(self, obj, event):
-        if obj is self.curve_field:
-            if event.type() == QtCore.QEvent.DragEnter:
-                if event.mimeData().hasText():
-                    event.acceptProposedAction()
-                    return True
-            elif event.type() == QtCore.QEvent.Drop:
-                text = event.mimeData().text().strip()
-                text = text.replace("file://", "").strip()
-                self.curve_field.setText(text)
-                self._validate_curve(text)
+        if obj is not self.curve_field:
+            return False
+        if event.type() == QtCore.QEvent.DragEnter:
+            if event.mimeData().hasText():
+                event.acceptProposedAction()
                 return True
-        return super(AuroraWindow, self).eventFilter(obj, event)  #lets window do normal thing for other events, important!!!!
+        elif event.type() == QtCore.QEvent.Drop:
+            text = event.mimeData().text().strip()
+            text = text.replace("file://", "").strip()
+            self.curve_field.setText(text)
+            self._validate_curve(text)
+            return True
+        return False
 
 
     #is dropped item a curve
@@ -272,6 +275,44 @@ class AuroraWindow(QtWidgets.QDialog):
             self.update_btn.setEnabled(False)
             self.save_btn.setEnabled(False)
             self._set_status_ok("Saved  →  {}  (locked)".format(new_name))
+
+    def _on_export(self):
+        saved = [n for n in (cmds.ls("aurora_mesh_*", type="transform") or [])
+                 if n != aurora_core.MESH_NAME]
+        if not saved:
+            self._show_warning("No saved auroras found.\nSave a ribbon first before exporting.")
+            return
+
+        dlg = QtWidgets.QDialog(None)
+        dlg.setWindowTitle("Export USD")
+        dlg.setMinimumWidth(260)
+        layout = QtWidgets.QVBoxLayout(dlg)
+        layout.addWidget(QtWidgets.QLabel("Select mesh to export:"))
+        combo = QtWidgets.QComboBox()
+        for name in sorted(saved):
+            combo.addItem(name)
+        layout.addWidget(combo)
+        btns = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        btns.accepted.connect(dlg.accept)
+        btns.rejected.connect(dlg.reject)
+        layout.addWidget(btns)
+        if not dlg.exec_():
+            return
+        mesh = combo.currentText()
+
+        folder = QtWidgets.QFileDialog.getExistingDirectory(
+            None, "Export USD — choose folder"
+        )
+        if not folder:
+            return
+
+        try:
+            path = aurora_core.export_usd(mesh, folder)
+            self._set_status_ok("Exported  ->  {}".format(path))
+        except Exception as e:
+            self._show_warning("Export failed:\n{}".format(str(e)))
 
     def _on_delete(self):
         for node in cmds.ls("aurora_mesh_*", type="transform") or []:
