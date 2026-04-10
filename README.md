@@ -28,7 +28,8 @@ Artists draw a NURBS curve to define the shape and position of the aurora. The t
 7. Press Delete to delete all existing Auora
 8. Press Export to export as USD in file location of choice.
 
-## Demo
+## Demo![final](https://github.com/user-attachments/assets/676654b1-2be4-4fc0-93ab-184e9d721cff)
+
 ![render_aurora](https://github.com/user-attachments/assets/5c188a47-c12e-4d58-89ea-d10f9ccb24f2)
 
 [https://youtu.be/G5a8kWYNRfc](https://youtu.be/X2EnPphHqcw)
